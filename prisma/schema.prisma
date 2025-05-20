@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../generated/prisma"
@@ -12,4 +6,72 @@ generator client {
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
+}
+
+model cliente {
+  idCliente       Int           @id @default(autoincrement())
+  Nome            String        @db.VarChar(45)
+  CPF_CNPJ        String        @db.VarChar(14)
+  EmailContato    String?       @db.VarChar(45)
+  TelefoneContato String?       @db.VarChar(15)
+  Logradouro      String?       @db.VarChar(45)
+  CEP             String?       @db.VarChar(9)
+  Cidade          String?       @db.VarChar(45)
+  Bairro          String?       @db.VarChar(45)
+  Numero          Int?
+  UF              String?       @db.VarChar(2)
+  equipamento     equipamento[]
+}
+
+model equipamento {
+  idEquipamento     Int            @id @default(autoincrement())
+  Nome              String?        @db.VarChar(45)
+  Descricao         String?        @db.VarChar(45)
+  Status            String?        @db.VarChar(10)
+  Cliente_idCliente Int
+  cliente           cliente        @relation(fields: [Cliente_idCliente], references: [idCliente], onDelete: NoAction, onUpdate: NoAction, map: "fk_Equipamento_Cliente")
+  ordemservico      ordemservico[]
+
+  @@index([Cliente_idCliente], map: "fk_Equipamento_Cliente_idx")
+}
+
+model funcionario {
+  idUsuario           Int                   @id @default(autoincrement())
+  Nome                String                @db.VarChar(45)
+  Senha               String                @db.VarChar(45)
+  TipoUsuario         Int
+  servicosfuncionario servicosfuncionario[]
+}
+
+model ordemservico {
+  idOrdemServico            Int         @id @default(autoincrement())
+  Equipamento_idEquipamento Int
+  Servico_idServico         Int
+  equipamento               equipamento @relation(fields: [Equipamento_idEquipamento], references: [idEquipamento], onDelete: NoAction, onUpdate: NoAction, map: "fk_OrdemServico_Equipamento1")
+  servico                   servico     @relation(fields: [Servico_idServico], references: [idServico], onDelete: NoAction, onUpdate: NoAction, map: "fk_OrdemServico_Servico1")
+
+  @@index([Equipamento_idEquipamento], map: "fk_OrdemServico_Equipamento1_idx")
+  @@index([Servico_idServico], map: "fk_OrdemServico_Servico1_idx")
+}
+
+model servico {
+  idServico           Int                   @id @default(autoincrement())
+  TipoServico         String?               @db.VarChar(45)
+  DataInicio          DateTime?             @db.Date
+  DataFim             DateTime?             @db.Date
+  Status              String?               @db.VarChar(45)
+  Setor               String?               @db.VarChar(45)
+  ordemservico        ordemservico[]
+  servicosfuncionario servicosfuncionario[]
+}
+
+model servicosfuncionario {
+  idServicosFuncionario Int         @id @default(autoincrement())
+  Funcionario_idUsuario Int
+  Servico_idServico     Int
+  funcionario           funcionario @relation(fields: [Funcionario_idUsuario], references: [idUsuario], onDelete: NoAction, onUpdate: NoAction, map: "fk_ServicosFuncionario_Funcionario1")
+  servico               servico     @relation(fields: [Servico_idServico], references: [idServico], onDelete: NoAction, onUpdate: NoAction, map: "fk_ServicosFuncionario_Servico1")
+
+  @@index([Funcionario_idUsuario], map: "fk_ServicosFuncionario_Funcionario1_idx")
+  @@index([Servico_idServico], map: "fk_ServicosFuncionario_Servico1_idx")
 }
